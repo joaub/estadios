@@ -1,15 +1,24 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useStadiums } from './useStadiums';
+import { useState } from 'react';
 
 const StadiumMap = () => {
     const { stadiums, loading, error } = useStadiums();
+
+    const [addMode, setAddMode] = useState(false);
+    const [newStadium, setNewStadium] = useState(null);
+    const [customStadiums, setCustomStadiums] = useState([]);
 
     return (
         <div className="map-wrapper">
             {loading && <p className="status">Cargando estadios...</p>}
             {error && <p className="status error">{error}</p>}
 
+            <button 
+            onClick={() => setAddMode(!addMode)}>
+                { addMode ? "cancelar" : " agregar estadios"}
+            </button>
             <MapContainer
                 center={[-32.8895, -68.8458]}
                 zoom={9}
