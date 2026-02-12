@@ -1,15 +1,40 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useStadiums } from './useStadiums';
+import { useMapEvents } from "react-leaflet";
+import { useState, useEffect } from 'react';
 
-import { useState } from 'react';
+const MapClickHandler = ({ addMode, setNewStadium }) => {
+    useMapEvents({
+        click(e) {
+            if (!addMode) return;
+
+            setNewStadium({
+                lat: e.latlng.lat,
+                lon: e.latlng.lng,
+                name: "",
+                team: "",
+                crest: null
+            });
+        }
+    });
+
+    return null;
+};
 
 const StadiumMap = () => {
     const { stadiums, loading, error } = useStadiums();
 
     const [addMode, setAddMode] = useState(false);
     const [newStadium, setNewStadium] = useState(null);
-    const [customStadiums, setCustomStadiums] = useState([]);
+    const [customStadiums, setCustomStadiums] = useState(() => {
+        const saved = localStorage.getItem("customStadiums");
+        return saved ? JSON.parse(saved) : [];
+    });
+
+    useEffect(() => {
+        localStorage.setItem("customStadiums", JSON.stringify(customStadiums));
+    }, [customStadiums])
 
     const saveStadium = () => {
         setCustomStadiums([...customStadiums, newStadium]);
@@ -39,21 +64,23 @@ const StadiumMap = () => {
                     zIndex: 1000,
                     bottom: 20,
                     left: 20,
-                    background: "white",
+                    background: "#1a9acc",
                     padding: 12,
                     borderRadius: 8,
                     width: 250
                 }}>
                     <h4>Nuevo Estadio</h4>
 
-                    <input type="text" placeholder="Nombre del estadio"
+                    <input placeholder="Nombre del estadio"
+                        className='stadium-input'
                         onChange={(e) =>
                             setNewStadium({ ...newStadium, name: e.target.value })} />
-                    <input type="text" placeholder='Equipo'
+                    <input placeholder='Equipo'
+                        className='stadium-input'
                         onChange={(e) =>
                             setNewStadium({ ...newStadium, team: e.target.value })
                         } />
-                    <button onClick={saveStadium}>Guardar</button>
+                    <button onClick={saveStadium} className='save'>Guardar</button>
                 </div>
             )}
             <MapContainer
@@ -61,7 +88,7 @@ const StadiumMap = () => {
                 zoom={9}
                 className="leaflet-map"
                 whenReady={(map) => {
-                    map.target.on("Click", (e) => {
+                    map.target.on("click", (e) => {
                         if (!addMode) return;
 
                         setNewStadium({
@@ -75,6 +102,11 @@ const StadiumMap = () => {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
 
+                <MapClickHandler
+                    addMode={addMode}
+                    setNewStadium={setNewStadium}
+                />
+
                 {!loading &&
                     stadiums.map(stadium => {
                         const lat = stadium.lat || stadium.center?.lat;
@@ -85,6 +117,7 @@ const StadiumMap = () => {
                             <Marker key={stadium.id} position={[lat, lon]}>
                                 <Popup>
                                     <strong>{stadium.tags?.name || 'Estadio sin nombre'}</strong>
+
                                 </Popup>
                             </Marker>
                         );
@@ -99,15 +132,12 @@ const StadiumMap = () => {
                             <strong>{stadium.name}</strong>
                             <br />
                             {stadium.team}
-                            <br />
-                            {stadium.crest && (
-                                <img src={stadium.crest} width={40} />
-                            )}
+
                         </Popup>
                     </Marker>
                 ))}
             </MapContainer>
-            
+
         </div>
     );
 };
