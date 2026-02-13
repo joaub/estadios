@@ -31,10 +31,17 @@ const StadiumMap = () => {
         const saved = localStorage.getItem("customStadiums");
         return saved ? JSON.parse(saved) : [];
     });
+    
+    
 
     useEffect(() => {
         localStorage.setItem("customStadiums", JSON.stringify(customStadiums));
     }, [customStadiums])
+
+    const deleteStadium = () =>{
+        localStorage.removeItem("customStadiums");
+        setCustomStadiums([]);
+    } 
 
     const saveStadium = () => {
         setCustomStadiums([...customStadiums, newStadium]);
@@ -58,7 +65,7 @@ const StadiumMap = () => {
                 }}>
                 {addMode ? "cancelar" : " agregar estadios"}
             </button>
-            {newStadium && (
+            {newStadium && addMode &&(
                 <div style={{
                     position: "absolute",
                     zIndex: 1000,
@@ -81,6 +88,7 @@ const StadiumMap = () => {
                             setNewStadium({ ...newStadium, team: e.target.value })
                         } />
                     <button onClick={saveStadium} className='save'>Guardar</button>
+                    <button onClick={deleteStadium} className='save'>Eliminar</button>
                 </div>
             )}
             <MapContainer
