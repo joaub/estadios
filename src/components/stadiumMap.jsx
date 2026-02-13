@@ -31,20 +31,24 @@ const StadiumMap = () => {
         const saved = localStorage.getItem("customStadiums");
         return saved ? JSON.parse(saved) : [];
     });
-    
-    
+
+
 
     useEffect(() => {
         localStorage.setItem("customStadiums", JSON.stringify(customStadiums));
     }, [customStadiums])
 
-    const deleteStadium = () =>{
-        localStorage.removeItem("customStadiums");
-        setCustomStadiums([]);
-    } 
+    const deleteStadium = (id) => {
+        setCustomStadiums(prev =>
+            prev.filter(stadium => stadium.id !== id));
+    }
 
     const saveStadium = () => {
-        setCustomStadiums([...customStadiums, newStadium]);
+        const stadiumWithId = {
+            ...newStadium,
+            id: crypto.randomUUID()
+        };
+        setCustomStadiums([...customStadiums, stadiumWithId]);
         setNewStadium(null);
         setAddMode(false);
     };
@@ -65,7 +69,7 @@ const StadiumMap = () => {
                 }}>
                 {addMode ? "cancelar" : " agregar estadios"}
             </button>
-            {newStadium && addMode &&(
+            {newStadium && addMode && (
                 <div style={{
                     position: "absolute",
                     zIndex: 1000,
@@ -88,7 +92,7 @@ const StadiumMap = () => {
                             setNewStadium({ ...newStadium, team: e.target.value })
                         } />
                     <button onClick={saveStadium} className='save'>Guardar</button>
-                    <button onClick={deleteStadium} className='save'>Eliminar</button>
+                   
                 </div>
             )}
             <MapContainer
@@ -125,7 +129,7 @@ const StadiumMap = () => {
                             <Marker key={stadium.id} position={[lat, lon]}>
                                 <Popup>
                                     <strong>{stadium.tags?.name || 'Estadio sin nombre'}</strong>
-
+                                    
                                 </Popup>
                             </Marker>
                         );
@@ -140,7 +144,8 @@ const StadiumMap = () => {
                             <strong>{stadium.name}</strong>
                             <br />
                             {stadium.team}
-
+                            <br />
+                            <button onClick={() => deleteStadium(stadium.id)} className='delete'>Eliminar</button>
                         </Popup>
                     </Marker>
                 ))}
